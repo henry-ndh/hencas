@@ -1,6 +1,13 @@
 # Introduction
 This is a sample project using React + TypeScript + Vite + ShadcnUI + TailwindCSS. Just clone the repository and get started right away!
 
+# Run project
+
+`npm install`
+`npm run dev`
+`open http://localhost:3000`
+
+
 # Project Structure
 
 - `src/based`: Contains project components and configurations such as config files, constants, and custom hooks.
