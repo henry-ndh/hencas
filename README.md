@@ -48,5 +48,19 @@ export default defineConfig({
 })
 
 ```
+
+# Maybe you need 
+
+Something i think you will need :D
+
+1. Clone with custom name 
+
+`git clone <URL_OF_REPOSITORY> <NAME_OF_PROJECT_YOU_WANT>`
+
+2. Change remote url
+
+`git remote set-url origin <URL_OF_NEW_REPOSITORY>`
+
+
 "# base_typescript" 
 
