@@ -7,10 +7,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@based": path.resolve(__dirname, "./src/based"),
       "@assets": path.resolve(__dirname, "./src/assets"),
       "@entities": path.resolve(__dirname, "./src/entities"),
       "@query": path.resolve(__dirname, "./src/queries"),
-
     },
   },
   server: {

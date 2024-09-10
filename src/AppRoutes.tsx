@@ -7,20 +7,20 @@ const AppRoutes = [
   {
     path: '/',
     element: (
-      <Suspense fallback={<>1212</>}>
+      <Suspense fallback={<>Loading</>}>
         <HomePage />
       </Suspense>
     ),
-    layout: 'Default',
+    layout: true,
   },
   {
     path: '/speaking',
     element: (
-      <Suspense fallback={<>1212</>}>
+      <Suspense fallback={<>Loading</>}>
         <SpeakingPage />
       </Suspense>
     ),
-    layout: 'Default',
+    layout: true,
   },
 ];
 

@@ -1,18 +1,17 @@
-import { ThemeProvider } from '@/components/theme-provider';
 import AppRoutes from './AppRoutes';
 import { Routes, Route } from 'react-router-dom';
+import DefaultLayout from '@/based/layout/DefaultLayout';
+import React from 'react';
 
 const App = () => {
-  console.log(AppRoutes);
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <Routes>
-        {AppRoutes.map((route, index) => {
-          const { element, ...rest } = route;
-          return <Route key={index} {...rest} path={route.path} element={<>{element}</>} />;
-        })}
-      </Routes>
-    </ThemeProvider>
+    <Routes>
+      {AppRoutes.map((route, index) => {
+        const Layout = route.layout ? DefaultLayout : React.Fragment;
+        const { element, ...rest } = route;
+        return <Route key={index} {...rest} path={route.path} element={<Layout>{element}</Layout>} />;
+      })}
+    </Routes>
   );
 };
 
