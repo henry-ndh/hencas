@@ -68,3 +68,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 
+ -- animtion for scroll-animation-box
+ -- you can define, change and whatever you want style animation here
+*/
+
+.box_translateX_RightToLeft {
+  transform: translateX(400%);
+  transition: transform 0.7s ease;
+}
+
+.box_translateX_RightToLeft.show {
+  transform: translateX(0);
+}
+
+.box_translateX_ByIndex {
+  transform: translateX(400%);
+  transition: transform 0.7s ease;
+}
+
+.box_translateX_ByIndex:nth-of-type(even) {
+  transform: translateX(-400%);
+}
+
+.box_translateX_ByIndex.show {
+  transform: translateX(0);
+}
+
+.box_translateX_LeftToRight {
+  transform: translateX(-400%);
+  transition: transform 0.7s ease;
+}
+
+.box_translateX_LeftToRight.show {
+  transform: translateX(0);
+}
