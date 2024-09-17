@@ -1,4 +1,7 @@
 import { PenToolIcon, TypeIcon, ImageIcon, RectangleVerticalIcon, LayersIcon, SettingsIcon } from '@/based/config/SVGIcon';
+import ImgCanva1 from '@/assets/canvas/canvas1.webp';
+import ImgCanva2 from '@/assets/canvas/canvas2.webp';
+
 export const MenuHeader = [
   {
     id: 1,
@@ -57,5 +60,16 @@ export const listMenuCustomize = [
     id: 6,
     icon: SettingsIcon,
     title: 'Settings',
+  },
+];
+
+export const ImgCustomize = [
+  {
+    id: 1,
+    img: ImgCanva1,
+  },
+  {
+    id: 2,
+    img: ImgCanva2,
   },
 ];

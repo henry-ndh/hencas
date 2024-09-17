@@ -4,11 +4,22 @@ import { useState, useRef, useEffect } from 'react';
 import * as fabric from 'fabric';
 import styled from 'styled-components';
 import IMGShirt from '@/assets/shirt.png';
+import IMGShirtYellow from '@/assets/shirt_yellow.png';
+import IMGShirtRed from '@/assets/shirt_red.png';
 import { SketchPicker } from 'react-color';
-import mergeImages from 'merge-images';
+import { CongCu } from './MenuDetail';
 import { listMenuCustomize } from '@/based/data/Data';
 import { UndoIcon, RedoIcon, ZoomInIcon, ZoomOutIcon } from '@/based/config/SVGIcon';
 import { Input } from '@/components/ui/input';
+import { exportCanvasAsImage } from '@/helpers';
+
+type StarPointsParams = {
+  numPoints: number;
+  outerRadius: number;
+  innerRadius: number;
+  centerX: number;
+  centerY: number;
+};
 
 export default function CustomizeProduct() {
   const canvaRef = useRef<HTMLCanvasElement>(null);
@@ -20,20 +31,29 @@ export default function CustomizeProduct() {
   const [detailCanvas, setDetailCanvas] = useState({
     xPosition: 0,
     yPosition: 0,
-    radius: 0,
-    fill: '',
   });
+
+  const [selectedImg, setSelectedImg] = useState(IMGShirt);
 
   useEffect(() => {
     if (canvaRef.current) {
       const fabricCanvas = new fabric.Canvas(canvaRef.current);
       setCanvas(fabricCanvas);
 
+      window.addEventListener('keydown', handleKeyDown);
+
       return () => {
         fabricCanvas.dispose();
+        window.removeEventListener('keydown', handleKeyDown);
       };
     }
   }, []);
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Delete') {
+      deleteSelectedObject();
+    }
+  };
 
   const handleColorChange = (newColor: string) => {
     setColor(newColor);
@@ -43,49 +63,9 @@ export default function CustomizeProduct() {
     }
   };
 
-  console.log(detailCanvas);
-
-  const exportCanvasAsImage = () => {
+  const handleExportCanvasAsImage = () => {
     if (canvas) {
-      const dataUrl = canvas.toDataURL({
-        format: 'png',
-        quality: 1.0,
-        multiplier: 2,
-      });
-
-      const imgCanvas = new Image();
-      imgCanvas.src = dataUrl;
-      const ImgBackground = new Image();
-      ImgBackground.src = IMGShirt;
-      ImgBackground.width = 700;
-      ImgBackground.height = 700;
-      console.log('Position', detailCanvas.xPosition, detailCanvas.yPosition);
-      console.log('ImgBackground', ImgBackground);
-      ImgBackground.onload = () => {
-        mergeImages(
-          [
-            {
-              src: ImgBackground.src,
-              x: 0,
-              y: 0,
-            },
-            {
-              src: imgCanvas.src,
-              x: detailCanvas.xPosition,
-              y: detailCanvas.yPosition,
-            },
-          ],
-          {
-            width: 1000,
-            height: 1000,
-          }
-        ).then((b64) => {
-          const a = document.createElement('a');
-          a.href = b64;
-          a.download = 'canvas-image.png';
-          a.click();
-        });
-      };
+      exportCanvasAsImage({ canvas, selectedImg, detailPosition: detailCanvas });
     }
   };
 
@@ -118,55 +98,117 @@ export default function CustomizeProduct() {
     };
   };
 
-  const addElement = () => {
-    if (canvas) {
-      const radius = 30;
-      const circle = new fabric.Circle({ radius, fill: color, top: 100, left: 100 });
-      canvas.add(circle);
-      circle.on('selected', () => {
-        setSelectedObject(circle);
-      });
-      circle.on('moving', () => {
-        let xPosition = circle.left;
-        let yPosition = circle.top;
-        console.log(circle);
-        setDetailCanvas({
-          xPosition,
-          yPosition,
-          radius,
-          fill: color,
-        });
-      });
-    }
+  const randomColor = () => {
+    return '#' + Math.floor(Math.random() * 16777215).toString(16);
   };
+  const calculateStarPoints = ({ numPoints, outerRadius, innerRadius, centerX, centerY }: StarPointsParams) => {
+    const angle = Math.PI / numPoints;
+    let points = [];
+
+    for (let i = 0; i < 2 * numPoints; i++) {
+      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      const x = centerX + radius * Math.cos(i * angle - Math.PI / 2);
+      const y = centerY + radius * Math.sin(i * angle - Math.PI / 2);
+      points.push({ x, y });
+    }
+
+    return points;
+  };
+  const addShape = (shape: string) => {
+    if (!canvas) return;
+    let left = 100;
+    let top = 100;
+    const padding = 10;
+    const color = randomColor();
+    let newShape;
+
+    const objects = canvas.getObjects();
+    const isOverlapping = (left: number, top: number) => {
+      return objects.some((obj) => {
+        return obj.left === left || obj.top === top || obj.left + obj.width === left || obj.top + obj.height === top;
+      });
+    };
+
+    while (isOverlapping(left, top)) {
+      left += padding;
+      top += padding / 2 - 3;
+    }
+    const commonProperties = { left: left, top: left, fill: color };
+
+    switch (shape) {
+      case 'rectangle':
+        newShape = new fabric.Rect({ width: 50, height: 50, ...commonProperties });
+        break;
+      case 'circle':
+        newShape = new fabric.Circle({ radius: 25, ...commonProperties });
+        break;
+      case 'triangle':
+        newShape = new fabric.Triangle({ width: 50, height: 50, ...commonProperties });
+        break;
+      case 'star':
+        const points = calculateStarPoints({
+          numPoints: 5,
+          outerRadius: 25,
+          innerRadius: 10,
+          centerX: left,
+          centerY: top,
+        });
+        newShape = new fabric.Polygon(points, {
+          left: left,
+          top: top,
+          fill: color,
+          stroke: 'black',
+          strokeWidth: 2,
+        });
+        break;
+      case 'line':
+        newShape = new fabric.Line([50, 50, 50, 50], { ...commonProperties });
+        break;
+      default:
+        return;
+    }
+    newShape.on('selected', () => {
+      setSelectedObject(newShape);
+      setSelectedMenu(0);
+    });
+
+    canvas.add(newShape);
+    canvas.renderAll();
+  };
+
   const addText = () => {
     if (canvas) {
       const text = new fabric.Textbox('Nội dung văn bản của bạn', {
         left: 50,
         top: 50,
+        width: 150,
         fill: color,
         fontSize: 20,
       });
       text.on('selected', () => {
         setSelectedObject(text);
+        setSelectedMenu(1);
       });
       canvas.add(text);
+    }
+  };
+
+  const deleteSelectedObject = () => {
+    if (canvas) {
     }
   };
 
   const renderMenuDetail = (selectedMenu: number) => {
     switch (selectedMenu) {
       case 0:
-        return (
-          <Button onClick={addElement} className="bg-[#8b3dff] hover:bg-[#662ad4]">
-            Thêm hình tròn
-          </Button>
-        );
+        return <CongCu addShape={addShape} addImage={addImage} />;
       case 1:
         return (
-          <Button onClick={addText} className="bg-[#8b3dff] hover:bg-[#662ad4]">
-            Thêm ô văn bản
-          </Button>
+          <>
+            <Button onClick={addText} className="bg-[#8b3dff] hover:bg-[#662ad4]">
+              Thêm ô văn bản
+            </Button>
+          </>
         );
       case 2:
         return (
@@ -272,7 +314,7 @@ export default function CustomizeProduct() {
       </div>
 
       {/* menu detail */}
-      <div className="flex w-72 flex-col bg-[#252627]">
+      <div className="flex w-[20%] flex-col bg-[#252627]">
         <div className="sticky top-0 z-10   px-4 py-3">
           <h3 className="text-lg text-white font-medium">{listMenuCustomize[selectedMenu].title}</h3>
         </div>
@@ -284,15 +326,37 @@ export default function CustomizeProduct() {
         <div className="flex h-full items-center justify-center">
           <div className="grid gap-4 rounded-lg bg-background p-8 shadow-lg">
             <div className="aspect-[4/3] flex justify-center flex-col items-center w-[700px] h-[700px] rounded-lg border bg-white">
-              <ContainerWrapper bg={IMGShirt}>
+              <ContainerWrapper bg={selectedImg}>
                 <div className="relative w-[300px] h-[300px] border-dotted border-[1px] border-gray-500">
                   <canvas width="300" height="300" ref={canvaRef} />
                 </div>
               </ContainerWrapper>
             </div>
             <div className="flex justify-between">
-              <Button variant="outline">Save</Button>
-              <Button variant="outline" onClick={exportCanvasAsImage}>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="rounded-full w-10 h-10 bg-black hover:bg-black"
+                  onClick={() => {
+                    setSelectedImg(IMGShirt);
+                  }}
+                ></Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full w-10 h-10 bg-red-500 hover:bg-red-500"
+                  onClick={() => {
+                    setSelectedImg(IMGShirtRed);
+                  }}
+                ></Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full w-10 h-10 bg-yellow-500 hover:bg-yellow-500"
+                  onClick={() => {
+                    setSelectedImg(IMGShirtYellow);
+                  }}
+                ></Button>
+              </div>
+              <Button variant="outline" onClick={handleExportCanvasAsImage}>
                 Export
               </Button>
             </div>
