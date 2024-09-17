@@ -1,17 +1,17 @@
 import React, { Suspense } from 'react';
 
-const HomePage = React.lazy(() => import('./entities'));
+// const HomePage = React.lazy(() => import('./entities'));
 const SpeakingPage = React.lazy(() => import('@/entities/speaking'));
-
+const CustomizeProductPage = React.lazy(() => import('@/entities/customize-product'));
 const AppRoutes = [
   {
     path: '/',
     element: (
       <Suspense fallback={<>Loading</>}>
-        <HomePage />
+        <CustomizeProductPage />
       </Suspense>
     ),
-    layout: true,
+    layout: false,
   },
   {
     path: '/speaking',

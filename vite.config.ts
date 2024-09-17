@@ -11,6 +11,7 @@ export default defineConfig({
       "@assets": path.resolve(__dirname, "./src/assets"),
       "@entities": path.resolve(__dirname, "./src/entities"),
       "@query": path.resolve(__dirname, "./src/queries"),
+      "@components": path.resolve(__dirname, "./src/components"),
     },
   },
   server: {

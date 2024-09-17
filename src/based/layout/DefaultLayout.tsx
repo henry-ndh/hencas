@@ -32,7 +32,7 @@ const DefaultLayoutWrapper = styled.div`
 const DefaultLayoutInner = styled.div`
     display: flex;
     flex-direction: column;
-    width: 70%;
+    width: 100%;
     height: 100dvh;
     margin: 0 auto;
 `;
